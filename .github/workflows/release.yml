@@ -76,6 +76,7 @@ jobs:
               - sourceline: deb http://security.ubuntu.com/ubuntu jammy-security main restricted universe multiverse
               include:
               - libgtk-3-0
+              - librsvg2-common
               exclude:
               - humanity-icon-theme
               - hicolor-icon-theme

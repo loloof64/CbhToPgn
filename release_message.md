@@ -1,4 +1,3 @@
-Added translations.
-Changed title and icon.
+Fixed appimage file was missing a dependency.
 
 See CHANGELOG.md for details.

@@ -1,3 +1,7 @@
+- 0.0.4
+
+Fixed appimage file was missing a dependency.
+
 - 0.0.3
 
 Added translations.
