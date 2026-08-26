@@ -125,6 +125,24 @@ class _HomePageState extends State<HomePage> {
   bool get _hasRequiredFiles =>
       _requiredExtensions.every((ext) => _fileBytes.containsKey(ext));
 
+  bool get _hasSomethingToReset =>
+      _pickedFiles.isNotEmpty ||
+      _selectionError != null ||
+      _output != null ||
+      _conversionError != null;
+
+  void _resetAll() {
+    setState(() {
+      _pickedFiles.clear();
+      _fileBytes.clear();
+      _selectionError = null;
+      _detectedGameCount = null;
+      _output = null;
+      _conversionError = null;
+      _includeAnnotations = true;
+    });
+  }
+
   Future<void> _pickFiles() async {
     setState(() {
       _isPicking = true;
@@ -256,7 +274,16 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CBH → PGN')),
+      appBar: AppBar(
+        title: const Text('CBH → PGN'),
+        actions: [
+          IconButton(
+            onPressed: _hasSomethingToReset ? _resetAll : null,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Réinitialiser',
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
