@@ -1,3 +1,8 @@
+- 0.0.3
+
+Added translations.
+Changed title and icon.
+
 - 0.0.2
 
 Fix AppImage version

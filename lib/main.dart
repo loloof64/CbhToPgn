@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'l10n/generated/app_localizations.dart';
 import 'ui/home_page.dart';
 
 void main() {
@@ -12,7 +13,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CBH → PGN',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
       home: const HomePage(),
     );

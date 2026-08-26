@@ -1,0 +1,133 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "CBH → PGN",
+  "@appTitle": {"description": "Application title shown in the app bar and window title."},
+
+  "resetTooltip": "Reset",
+  "@resetTooltip": {"description": "Tooltip for the button that clears the current selection/results."},
+
+  "issueNotMarkedAsGame": "not marked as a game",
+  "@issueNotMarkedAsGame": {"description": "Reason a database record was skipped during conversion."},
+
+  "issueMarkedAsDeleted": "marked as deleted",
+  "@issueMarkedAsDeleted": {"description": "Reason a database record was skipped during conversion."},
+
+  "issueNotEncoded": "unsupported format (not encoded)",
+  "@issueNotEncoded": {"description": "Reason a database record was skipped during conversion."},
+
+  "issueChess960": "Chess960, not supported",
+  "@issueChess960": {"description": "Reason a database record was skipped during conversion."},
+
+  "issueSpecialEncoding": "unsupported special encoding",
+  "@issueSpecialEncoding": {"description": "Reason a database record was skipped during conversion."},
+
+  "issueDecodeError": "decoding error",
+  "@issueDecodeError": {"description": "Reason a database record was skipped during conversion."},
+
+  "issueLine": "Game #{index}: {labelWithDetail}",
+  "@issueLine": {
+    "description": "One line in the list of skipped/errored games.",
+    "placeholders": {
+      "index": {"type": "int"},
+      "labelWithDetail": {"type": "String"}
+    }
+  },
+
+  "filePickerDialogTitle": "Select the database's .cbh file (matching .cbg/.cbp/.cbt/.cba files will be loaded automatically), or a .cbv archive",
+  "@filePickerDialogTitle": {"description": "Title of the native file picker dialog."},
+
+  "missingFilesError": "{count, plural, one{Missing file: {files}} other{Missing files: {files}}}",
+  "@missingFilesError": {
+    "description": "Shown when some required database files were not selected.",
+    "placeholders": {
+      "count": {"type": "int"},
+      "files": {"type": "String"}
+    }
+  },
+
+  "fileSelectionError": "Error while selecting files: {error}",
+  "@fileSelectionError": {
+    "description": "Shown when an exception is thrown while picking files.",
+    "placeholders": {"error": {"type": "String"}}
+  },
+
+  "invalidBatchSize": "Invalid batch size.",
+  "@invalidBatchSize": {"description": "Shown when the batch size field does not contain a valid positive integer."},
+
+  "conversionError": "Error during conversion: {error}",
+  "@conversionError": {
+    "description": "Shown when an exception is thrown while converting.",
+    "placeholders": {"error": {"type": "String"}}
+  },
+
+  "saveError": "Error while saving: {error}",
+  "@saveError": {
+    "description": "Shown when an exception is thrown while saving the output ZIP.",
+    "placeholders": {"error": {"type": "String"}}
+  },
+
+  "sectionFilesTitle": "1. Database files",
+  "@sectionFilesTitle": {"description": "Section header."},
+
+  "filesDescription": "Select the database's .cbh file: the .cbg, .cbp, .cbt files (and .cba for comments/annotations) sharing the same name are loaded automatically if they are in the same folder. You can also select several files manually, or directly a .cbv archive (created via \"Save database\" in ChessBase).",
+  "@filesDescription": {"description": "Explanation of how to select database files."},
+
+  "selectFilesButton": "Select database files",
+  "@selectFilesButton": {"description": "Button label to open the file picker."},
+
+  "detectedGameCount": "{count, plural, one{{count} game detected in the index.} other{{count} games detected in the index.}}",
+  "@detectedGameCount": {
+    "description": "Shown after loading files, reporting how many games were found.",
+    "placeholders": {"count": {"type": "int"}}
+  },
+
+  "sectionOptionsTitle": "2. Export options",
+  "@sectionOptionsTitle": {"description": "Section header."},
+
+  "perGameOption": "One PGN file per game",
+  "@perGameOption": {"description": "Export mode radio option."},
+
+  "batchSizePrefix": "Group in batches of ",
+  "@batchSizePrefix": {"description": "Text before the batch size input field. Note the trailing space."},
+
+  "batchSizeSuffix": " games",
+  "@batchSizeSuffix": {"description": "Text after the batch size input field. Note the leading space."},
+
+  "includeVariations": "Include variations",
+  "@includeVariations": {"description": "Checkbox label."},
+
+  "includeAnnotations": "Include comments and annotations (experimental)",
+  "@includeAnnotations": {"description": "Checkbox label."},
+
+  "includeAnnotationsSubtitle": "Based on unverified reverse engineering of the .cba format: please verify against your database, it may be incomplete or missing.",
+  "@includeAnnotationsSubtitle": {"description": "Disclaimer shown below the annotations checkbox."},
+
+  "sectionConversionTitle": "3. Conversion",
+  "@sectionConversionTitle": {"description": "Section header."},
+
+  "convertButton": "Convert",
+  "@convertButton": {"description": "Button label to start the conversion."},
+
+  "convertingInProgress": "Converting...",
+  "@convertingInProgress": {"description": "Shown while the conversion is running."},
+
+  "conversionSummary": "{convertedCount, plural, one{# game} other{# games}} converted out of {totalCount}, {ignoredCount, plural, one{# ignored or failed} other{# ignored or failed}}.",
+  "@conversionSummary": {
+    "description": "Summary shown after a conversion completes.",
+    "placeholders": {
+      "convertedCount": {"type": "int"},
+      "totalCount": {"type": "int"},
+      "ignoredCount": {"type": "int"}
+    }
+  },
+
+  "detailsExpansionTitle": "Details ({count})",
+  "@detailsExpansionTitle": {
+    "description": "Title of the expandable panel listing skipped/errored games.",
+    "placeholders": {"count": {"type": "int"}}
+  },
+
+  "saveZipButton": "Save ZIP",
+  "@saveZipButton": {"description": "Button label to save the resulting ZIP file."}
+}

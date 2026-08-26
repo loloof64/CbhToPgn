@@ -1,0 +1,43 @@
+{
+  "@@locale": "fr",
+
+  "appTitle": "CBH → PGN",
+  "resetTooltip": "Réinitialiser",
+
+  "issueNotMarkedAsGame": "n'est pas une partie",
+  "issueMarkedAsDeleted": "marquée supprimée",
+  "issueNotEncoded": "format non pris en charge (non encodé)",
+  "issueChess960": "Chess960, non pris en charge",
+  "issueSpecialEncoding": "encodage spécial non pris en charge",
+  "issueDecodeError": "erreur de décodage",
+  "issueLine": "Partie #{index} : {labelWithDetail}",
+
+  "filePickerDialogTitle": "Sélectionnez le fichier .cbh de la base (les .cbg/.cbp/.cbt/.cba portant le même nom seront chargés automatiquement), ou une archive .cbv",
+
+  "missingFilesError": "{count, plural, one{Fichier manquant : {files}} other{Fichiers manquants : {files}}}",
+  "fileSelectionError": "Erreur pendant la sélection des fichiers : {error}",
+  "invalidBatchSize": "Taille de lot invalide.",
+  "conversionError": "Erreur pendant la conversion : {error}",
+  "saveError": "Erreur pendant l'enregistrement : {error}",
+
+  "sectionFilesTitle": "1. Fichiers de la base",
+  "filesDescription": "Sélectionnez le fichier .cbh de la base : les fichiers .cbg, .cbp, .cbt (et .cba pour les commentaires/annotations) portant le même nom sont chargés automatiquement s'ils se trouvent dans le même dossier. Vous pouvez aussi sélectionner plusieurs fichiers manuellement, ou directement une archive .cbv (créée via \"Sauvegarder la base de données\" dans ChessBase).",
+  "selectFilesButton": "Sélectionner les fichiers de la base",
+
+  "detectedGameCount": "{count, plural, one{{count} partie détectée dans l'index.} other{{count} parties détectées dans l'index.}}",
+
+  "sectionOptionsTitle": "2. Options d'export",
+  "perGameOption": "Un fichier PGN par partie",
+  "batchSizePrefix": "Regrouper par lots de ",
+  "batchSizeSuffix": " parties",
+  "includeVariations": "Inclure les variations",
+  "includeAnnotations": "Inclure commentaires et annotations (expérimental)",
+  "includeAnnotationsSubtitle": "Basé sur une rétro-ingénierie non vérifiée du format .cba : à valider sur votre base, peut être incomplet ou absent.",
+
+  "sectionConversionTitle": "3. Conversion",
+  "convertButton": "Convertir",
+  "convertingInProgress": "Conversion en cours...",
+  "conversionSummary": "{convertedCount, plural, one{# partie convertie} other{# parties converties}} sur {totalCount}, {ignoredCount, plural, one{# ignorée ou en erreur} other{# ignorées ou en erreur}}.",
+  "detailsExpansionTitle": "Détail ({count})",
+  "saveZipButton": "Enregistrer le ZIP"
+}

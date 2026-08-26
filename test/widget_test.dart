@@ -6,7 +6,7 @@ void main() {
   testWidgets('home page renders the file selection button', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    expect(find.text('Sélectionner les fichiers de la base'), findsOneWidget);
+    expect(find.text('Select database files'), findsOneWidget);
     expect(find.text('CBH → PGN'), findsOneWidget);
   });
 }

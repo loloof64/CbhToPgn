@@ -1,0 +1,43 @@
+{
+  "@@locale": "es",
+
+  "appTitle": "CBH → PGN",
+  "resetTooltip": "Reiniciar",
+
+  "issueNotMarkedAsGame": "no es una partida",
+  "issueMarkedAsDeleted": "marcada como eliminada",
+  "issueNotEncoded": "formato no compatible (sin codificar)",
+  "issueChess960": "Chess960, no compatible",
+  "issueSpecialEncoding": "codificación especial no compatible",
+  "issueDecodeError": "error de decodificación",
+  "issueLine": "Partida #{index}: {labelWithDetail}",
+
+  "filePickerDialogTitle": "Seleccione el archivo .cbh de la base de datos (los archivos .cbg/.cbp/.cbt/.cba con el mismo nombre se cargarán automáticamente), o un archivo .cbv",
+
+  "missingFilesError": "{count, plural, one{Falta el archivo: {files}} other{Faltan los archivos: {files}}}",
+  "fileSelectionError": "Error al seleccionar los archivos: {error}",
+  "invalidBatchSize": "Tamaño de lote no válido.",
+  "conversionError": "Error durante la conversión: {error}",
+  "saveError": "Error al guardar: {error}",
+
+  "sectionFilesTitle": "1. Archivos de la base de datos",
+  "filesDescription": "Seleccione el archivo .cbh de la base de datos: los archivos .cbg, .cbp, .cbt (y .cba para comentarios/anotaciones) con el mismo nombre se cargan automáticamente si están en la misma carpeta. También puede seleccionar varios archivos manualmente, o directamente un archivo .cbv (creado mediante \"Guardar base de datos\" en ChessBase).",
+  "selectFilesButton": "Seleccionar los archivos de la base de datos",
+
+  "detectedGameCount": "{count, plural, one{{count} partida detectada en el índice.} other{{count} partidas detectadas en el índice.}}",
+
+  "sectionOptionsTitle": "2. Opciones de exportación",
+  "perGameOption": "Un archivo PGN por partida",
+  "batchSizePrefix": "Agrupar en lotes de ",
+  "batchSizeSuffix": " partidas",
+  "includeVariations": "Incluir variantes",
+  "includeAnnotations": "Incluir comentarios y anotaciones (experimental)",
+  "includeAnnotationsSubtitle": "Basado en una ingeniería inversa no verificada del formato .cba: conviene comprobarlo con su base de datos, puede estar incompleto o ausente.",
+
+  "sectionConversionTitle": "3. Conversión",
+  "convertButton": "Convertir",
+  "convertingInProgress": "Convirtiendo...",
+  "conversionSummary": "{convertedCount, plural, one{# partida convertida} other{# partidas convertidas}} de {totalCount}, {ignoredCount, plural, one{# ignorada o con error} other{# ignoradas o con error}}.",
+  "detailsExpansionTitle": "Detalles ({count})",
+  "saveZipButton": "Guardar ZIP"
+}

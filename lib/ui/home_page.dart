@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../cbh/cbh_database.dart';
 import '../cbh/cbv_archive.dart';
 import '../export/pgn_zip_export.dart';
+import '../l10n/generated/app_localizations.dart';
 
 const List<String> _requiredExtensions = ['cbh', 'cbg', 'cbp', 'cbt'];
 const String _optionalExtension = 'cba';
@@ -36,31 +39,37 @@ class _ConversionOutput {
   final Uint8List zipBytes;
   final int gameCount;
   final int convertedCount;
-  final List<String> issueLines;
+  final List<ConversionIssue> issues;
 
   _ConversionOutput({
     required this.zipBytes,
     required this.gameCount,
     required this.convertedCount,
-    required this.issueLines,
+    required this.issues,
   });
 }
 
-String _issueLabel(IssueKind kind) {
+String _issueLabel(AppLocalizations l10n, IssueKind kind) {
   switch (kind) {
     case IssueKind.notMarkedAsGame:
-      return "n'est pas une partie";
+      return l10n.issueNotMarkedAsGame;
     case IssueKind.markedAsDeleted:
-      return 'marquée supprimée';
+      return l10n.issueMarkedAsDeleted;
     case IssueKind.notEncoded:
-      return 'format non pris en charge (non encodé)';
+      return l10n.issueNotEncoded;
     case IssueKind.chess960:
-      return 'Chess960, non pris en charge';
+      return l10n.issueChess960;
     case IssueKind.specialEncoding:
-      return 'encodage spécial non pris en charge';
+      return l10n.issueSpecialEncoding;
     case IssueKind.decodeError:
-      return 'erreur de décodage';
+      return l10n.issueDecodeError;
   }
+}
+
+String _issueLine(AppLocalizations l10n, ConversionIssue issue) {
+  final label = _issueLabel(l10n, issue.kind);
+  final labelWithDetail = issue.detail != null ? '$label (${issue.detail})' : label;
+  return l10n.issueLine(issue.recordIndex, labelWithDetail);
 }
 
 Future<_ConversionOutput> _runConversion(_ConversionParams params) async {
@@ -76,18 +85,11 @@ Future<_ConversionOutput> _runConversion(_ConversionParams params) async {
     includeAnnotations: params.includeAnnotations,
   );
   final zipBytes = buildPgnZip(result.games, gamesPerFile: params.gamesPerFile);
-  final issueLines = result.issues
-      .map((i) {
-        final label = _issueLabel(i.kind);
-        final detail = i.detail != null ? ' (${i.detail})' : '';
-        return 'Partie #${i.recordIndex} : $label$detail';
-      })
-      .toList();
   return _ConversionOutput(
     zipBytes: zipBytes,
     gameCount: db.gameCount,
     convertedCount: result.games.length,
-    issueLines: issueLines,
+    issues: result.issues,
   );
 }
 
@@ -144,6 +146,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _pickFiles() async {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _isPicking = true;
       _selectionError = null;
@@ -154,8 +157,7 @@ class _HomePageState extends State<HomePage> {
       final files = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: [..._requiredExtensions, _optionalExtension, _archiveExtension],
-        dialogTitle:
-            'Sélectionnez les fichiers .cbh, .cbg, .cbp, .cbt (et .cba si besoin), ou une archive .cbv',
+        dialogTitle: l10n.filePickerDialogTitle,
       );
       if (files.isEmpty) {
         setState(() => _isPicking = false);
@@ -184,6 +186,7 @@ class _HomePageState extends State<HomePage> {
           newPicked[ext] = file;
           newBytes[ext] = await file.readAsBytes();
         }
+        await _autoLoadSiblingFiles(newPicked, newBytes);
       }
 
       final missing = _requiredExtensions.where((ext) => !newBytes.containsKey(ext)).toList();
@@ -197,7 +200,7 @@ class _HomePageState extends State<HomePage> {
           ..addAll(newBytes);
         _selectionError = missing.isEmpty
             ? null
-            : "Fichier(s) manquant(s) : ${missing.map((e) => '.$e').join(', ')}";
+            : l10n.missingFilesError(missing.length, missing.map((e) => '.$e').join(', '));
         _detectedGameCount =
             _hasRequiredFiles ? (_fileBytes['cbh']!.length ~/ 46 - 1).clamp(0, 1 << 31) : null;
         if (!_fileBytes.containsKey(_optionalExtension)) {
@@ -208,18 +211,49 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       setState(() {
         _isPicking = false;
-        _selectionError = 'Erreur pendant la sélection des fichiers : $e';
+        _selectionError = l10n.fileSelectionError('$e');
       });
+    }
+  }
+
+  /// Fills in any required/optional file not explicitly picked by looking,
+  /// next to an already-picked file, for sibling files sharing the same
+  /// base name (ChessBase databases always bundle .cbh/.cbg/.cbp/.cbt/.cba
+  /// this way), so selecting the .cbh alone is enough on desktop platforms.
+  Future<void> _autoLoadSiblingFiles(
+    Map<String, PlatformFile> picked,
+    Map<String, Uint8List> bytes,
+  ) async {
+    final reference = picked['cbh'] ?? (picked.isEmpty ? null : picked.values.first);
+    final refPath = reference?.path;
+    if (refPath == null) return;
+
+    final separatorIndex = refPath.lastIndexOf(RegExp(r'[\\/]'));
+    final dir = separatorIndex >= 0 ? refPath.substring(0, separatorIndex + 1) : '';
+    final refName = separatorIndex >= 0 ? refPath.substring(separatorIndex + 1) : refPath;
+    final dotIndex = refName.lastIndexOf('.');
+    final baseName = dotIndex > 0 ? refName.substring(0, dotIndex) : refName;
+
+    for (final ext in [..._requiredExtensions, _optionalExtension]) {
+      if (bytes.containsKey(ext)) continue;
+      for (final candidateExt in {ext, ext.toUpperCase()}) {
+        final candidate = File('$dir$baseName.$candidateExt');
+        if (await candidate.exists()) {
+          bytes[ext] = await candidate.readAsBytes();
+          break;
+        }
+      }
     }
   }
 
   Future<void> _convert() async {
     if (!_hasRequiredFiles) return;
+    final l10n = AppLocalizations.of(context);
     int? gamesPerFile;
     if (_exportMode == _ExportMode.batched) {
       gamesPerFile = int.tryParse(_batchSizeController.text.trim());
       if (gamesPerFile == null || gamesPerFile < 1) {
-        setState(() => _conversionError = "Taille de lot invalide.");
+        setState(() => _conversionError = l10n.invalidBatchSize);
         return;
       }
     }
@@ -249,7 +283,7 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       setState(() {
         _isConverting = false;
-        _conversionError = 'Erreur pendant la conversion : $e';
+        _conversionError = l10n.conversionError('$e');
       });
     }
   }
@@ -266,21 +300,22 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur pendant l'enregistrement : $e")),
+        SnackBar(content: Text(AppLocalizations.of(context).saveError('$e'))),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CBH → PGN'),
+        title: Text(l10n.appTitle),
         actions: [
           IconButton(
             onPressed: _hasSomethingToReset ? _resetAll : null,
             icon: const Icon(Icons.refresh),
-            tooltip: 'Réinitialiser',
+            tooltip: l10n.resetTooltip,
           ),
         ],
       ),
@@ -290,19 +325,14 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('1. Fichiers de la base', style: Theme.of(context).textTheme.titleMedium),
+              Text(l10n.sectionFilesTitle, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text(
-                'Sélectionnez ensemble les fichiers .cbh, .cbg, .cbp et .cbt de la base '
-                '(et .cba si vous voulez les commentaires/annotations), ou directement '
-                'une archive .cbv (créée via "Sauvegarder la base de données" dans ChessBase).',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              Text(l10n.filesDescription, style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 onPressed: _isPicking ? null : _pickFiles,
                 icon: const Icon(Icons.folder_open),
-                label: const Text('Sélectionner les fichiers de la base'),
+                label: Text(l10n.selectFilesButton),
               ),
               const SizedBox(height: 8),
               if (_pickedFiles.isNotEmpty)
@@ -327,25 +357,25 @@ class _HomePageState extends State<HomePage> {
               ],
               if (_detectedGameCount != null) ...[
                 const SizedBox(height: 8),
-                Text('$_detectedGameCount partie(s) détectée(s) dans l\'index.'),
+                Text(l10n.detectedGameCount(_detectedGameCount!)),
               ],
               const Divider(height: 32),
-              Text("2. Options d'export", style: Theme.of(context).textTheme.titleMedium),
+              Text(l10n.sectionOptionsTitle, style: Theme.of(context).textTheme.titleMedium),
               RadioGroup<_ExportMode>(
                 groupValue: _exportMode,
                 onChanged: (v) => setState(() => _exportMode = v!),
                 child: Column(
                   children: [
-                    const RadioListTile<_ExportMode>(
+                    RadioListTile<_ExportMode>(
                       value: _ExportMode.perGame,
-                      title: Text('Un fichier PGN par partie'),
+                      title: Text(l10n.perGameOption),
                       dense: true,
                     ),
                     RadioListTile<_ExportMode>(
                       value: _ExportMode.batched,
                       title: Row(
                         children: [
-                          const Text('Regrouper par lots de '),
+                          Text(l10n.batchSizePrefix),
                           SizedBox(
                             width: 80,
                             child: TextField(
@@ -355,7 +385,7 @@ class _HomePageState extends State<HomePage> {
                               decoration: const InputDecoration(isDense: true),
                             ),
                           ),
-                          const Text(' parties'),
+                          Text(l10n.batchSizeSuffix),
                         ],
                       ),
                       dense: true,
@@ -366,7 +396,7 @@ class _HomePageState extends State<HomePage> {
               CheckboxListTile(
                 value: _includeVariations,
                 onChanged: (v) => setState(() => _includeVariations = v ?? true),
-                title: const Text('Inclure les variations'),
+                title: Text(l10n.includeVariations),
                 dense: true,
                 controlAffinity: ListTileControlAffinity.leading,
               ),
@@ -374,27 +404,24 @@ class _HomePageState extends State<HomePage> {
                 CheckboxListTile(
                   value: _includeAnnotations,
                   onChanged: (v) => setState(() => _includeAnnotations = v ?? true),
-                  title: const Text('Inclure commentaires et annotations (expérimental)'),
-                  subtitle: const Text(
-                    "Basé sur une rétro-ingénierie non vérifiée du format .cba : "
-                    "à valider sur votre base, peut être incomplet ou absent.",
-                  ),
+                  title: Text(l10n.includeAnnotations),
+                  subtitle: Text(l10n.includeAnnotationsSubtitle),
                   dense: true,
                   controlAffinity: ListTileControlAffinity.leading,
                 ),
               const Divider(height: 32),
-              Text('3. Conversion', style: Theme.of(context).textTheme.titleMedium),
+              Text(l10n.sectionConversionTitle, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 onPressed: (_hasRequiredFiles && !_isConverting) ? _convert : null,
                 icon: const Icon(Icons.transform),
-                label: const Text('Convertir'),
+                label: Text(l10n.convertButton),
               ),
               if (_isConverting) ...[
                 const SizedBox(height: 12),
                 const LinearProgressIndicator(),
                 const SizedBox(height: 8),
-                const Text('Conversion en cours...'),
+                Text(l10n.convertingInProgress),
               ],
               if (_conversionError != null) ...[
                 const SizedBox(height: 8),
@@ -403,26 +430,32 @@ class _HomePageState extends State<HomePage> {
               if (_output case final output?) ...[
                 const SizedBox(height: 16),
                 Text(
-                  '${output.convertedCount} partie(s) convertie(s) sur ${output.gameCount}, '
-                  '${output.issueLines.length} ignorée(s)/en erreur.',
+                  l10n.conversionSummary(
+                    output.convertedCount,
+                    output.gameCount,
+                    output.issues.length,
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                if (output.issueLines.isNotEmpty)
+                if (output.issues.isNotEmpty)
                   ExpansionTile(
-                    title: Text('Détail (${output.issueLines.length})'),
+                    title: Text(l10n.detailsExpansionTitle(output.issues.length)),
                     children: [
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxHeight: 240),
                         child: ListView(
                           shrinkWrap: true,
                           children: [
-                            for (final line in output.issueLines)
+                            for (final issue in output.issues)
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 2,
                                 ),
-                                child: Text(line, style: Theme.of(context).textTheme.bodySmall),
+                                child: Text(
+                                  _issueLine(l10n, issue),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
                               ),
                           ],
                         ),
@@ -433,7 +466,7 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton.icon(
                   onPressed: _saveZip,
                   icon: const Icon(Icons.save_alt),
-                  label: const Text('Enregistrer le ZIP'),
+                  label: Text(l10n.saveZipButton),
                 ),
               ],
             ],
