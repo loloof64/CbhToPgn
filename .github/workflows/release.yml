@@ -50,7 +50,6 @@ jobs:
           rm -rf AppDir
           cp -r build/linux/x64/release/bundle AppDir
           mkdir -p AppDir/usr/share/icons/hicolor/512x512/apps/
-          mv AppDir/lib/ AppDir/usr/
           cp web/icons/Icon-512.png AppDir/usr/share/icons/hicolor/512x512/apps/cbh_to_pgn.png
 
       - name: Write AppImageBuilder recipe

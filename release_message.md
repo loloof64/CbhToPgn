@@ -1,3 +1,3 @@
-First release version.
+Fix appimage version.
 
 See CHANGELOG.md for details.
