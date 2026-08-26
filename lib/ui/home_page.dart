@@ -3,10 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../cbh/cbh_database.dart';
+import '../cbh/cbv_archive.dart';
 import '../export/pgn_zip_export.dart';
 
 const List<String> _requiredExtensions = ['cbh', 'cbg', 'cbp', 'cbt'];
 const String _optionalExtension = 'cba';
+const String _archiveExtension = 'cbv';
 
 class _ConversionParams {
   final Uint8List cbh;
@@ -133,8 +135,9 @@ class _HomePageState extends State<HomePage> {
     try {
       final files = await FilePicker.pickFiles(
         type: FileType.custom,
-        allowedExtensions: [..._requiredExtensions, _optionalExtension],
-        dialogTitle: 'Sélectionnez les fichiers .cbh, .cbg, .cbp, .cbt (et .cba si besoin)',
+        allowedExtensions: [..._requiredExtensions, _optionalExtension, _archiveExtension],
+        dialogTitle:
+            'Sélectionnez les fichiers .cbh, .cbg, .cbp, .cbt (et .cba si besoin), ou une archive .cbv',
       );
       if (files.isEmpty) {
         setState(() => _isPicking = false);
@@ -143,12 +146,26 @@ class _HomePageState extends State<HomePage> {
 
       final newPicked = <String, PlatformFile>{};
       final newBytes = <String, Uint8List>{};
-      for (final file in files) {
-        final ext = file.extension?.toLowerCase();
-        if (ext == null) continue;
-        if (ext != _optionalExtension && !_requiredExtensions.contains(ext)) continue;
-        newPicked[ext] = file;
-        newBytes[ext] = await file.readAsBytes();
+      final archiveFile = files.firstWhere(
+        (f) => f.extension?.toLowerCase() == _archiveExtension,
+        orElse: () => files.first,
+      );
+      if (archiveFile.extension?.toLowerCase() == _archiveExtension) {
+        newPicked[_archiveExtension] = archiveFile;
+        final archiveBytes = await archiveFile.readAsBytes();
+        final extracted = extractCbvArchive(archiveBytes);
+        for (final ext in [..._requiredExtensions, _optionalExtension]) {
+          final bytes = extracted[ext];
+          if (bytes != null) newBytes[ext] = bytes;
+        }
+      } else {
+        for (final file in files) {
+          final ext = file.extension?.toLowerCase();
+          if (ext == null) continue;
+          if (ext != _optionalExtension && !_requiredExtensions.contains(ext)) continue;
+          newPicked[ext] = file;
+          newBytes[ext] = await file.readAsBytes();
+        }
       }
 
       final missing = _requiredExtensions.where((ext) => !newBytes.containsKey(ext)).toList();
@@ -250,7 +267,8 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 8),
               Text(
                 'Sélectionnez ensemble les fichiers .cbh, .cbg, .cbp et .cbt de la base '
-                '(et .cba si vous voulez les commentaires/annotations).',
+                '(et .cba si vous voulez les commentaires/annotations), ou directement '
+                'une archive .cbv (créée via "Sauvegarder la base de données" dans ChessBase).',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 8),
