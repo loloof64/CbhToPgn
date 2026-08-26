@@ -106,7 +106,8 @@ String writeSingleGamePgn(PgnHeaders headers, GameNode root) {
   final movetext = StringBuffer();
   _renderFrom(movetext, root, forceNumber: true);
   movetext.write(headers.result);
-  buf.writeln(movetext.toString().trim());
+  final rendered = movetext.toString().replaceAll(' )', ')');
+  buf.writeln(rendered.trim());
   buf.writeln();
   return buf.toString();
 }
